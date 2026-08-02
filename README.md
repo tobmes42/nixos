@@ -139,7 +139,7 @@ Dieser Schritt löscht die Festplatte.
 
 ```bash
 nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- \
-  --mode destroy,format,mount \
+  --mode destroy,format,mount --yes-wipe-all-disks\
   /mnt/etc/nixos/disko.nix
 ```
 
