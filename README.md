@@ -138,9 +138,9 @@ ACHTUNG:
 Dieser Schritt löscht die Festplatte.
 
 ```bash
-nix run github:nix-community/disko -- \
---mode destroy,format,mount \
-/mnt/etc/nixos/disko.nix
+nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- \
+  --mode destroy,format,mount \
+  /mnt/etc/nixos/disko.nix
 ```
 
 ## Installation starten
