@@ -3,57 +3,56 @@
 set -euo pipefail
 
 echo "=================================="
-echo " NixOS Server Installation"
+echo " NixOS automatische Installation"
 echo "=================================="
 
 
-# Prüfen, ob wir als root laufen
-
 if [ "$(id -u)" -ne 0 ]; then
-    echo "Bitte als root ausführen."
+    echo "Bitte als root ausführen"
     exit 1
 fi
 
 
-# Prüfen, ob Dateien vorhanden sind
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-echo "Verzeichnis:"
-echo "$SCRIPT_DIR"
-
-
-for file in configuration.nix disko.nix; do
-    if [ ! -f "$SCRIPT_DIR/$file" ]; then
-        echo "Fehler: $file nicht gefunden."
-        exit 1
-    fi
-done
 
 
 echo
-echo "=== Deutsche Tastatur aktivieren ==="
+echo "=== Prüfe Dateien ==="
+
+test -f "$SCRIPT_DIR/configuration.nix" || {
+    echo "configuration.nix fehlt"
+    exit 1
+}
+
+test -f "$SCRIPT_DIR/disko.nix" || {
+    echo "disko.nix fehlt"
+    exit 1
+}
+
+
+echo
+echo "=== Tastatur ==="
 
 loadkeys de
 
 
 echo
-echo "=== Netzwerk prüfen ==="
+echo "=== Disko Partitionierung ==="
 
-if ! ping -c 1 nixos.org >/dev/null 2>&1; then
-    echo "Kein Internet verfügbar."
-    exit 1
-fi
+nix --extra-experimental-features "nix-command flakes" run \
+github:nix-community/disko -- \
+--mode destroy,format,mount \
+"$SCRIPT_DIR/disko.nix"
 
 
 echo
-echo "=== Hardware-Konfiguration erzeugen ==="
+echo "=== Hardware Konfiguration erzeugen ==="
 
 nixos-generate-config --root /mnt
 
 
 echo
-echo "=== NixOS Konfiguration kopieren ==="
+echo "=== Eigene Konfiguration kopieren ==="
 
 cp "$SCRIPT_DIR/configuration.nix" \
    /mnt/etc/nixos/configuration.nix
@@ -63,32 +62,19 @@ cp "$SCRIPT_DIR/disko.nix" \
 
 
 echo
-echo "=== Alte Mounts entfernen ==="
+echo "=== Dateien prüfen ==="
 
-umount -R /mnt 2>/dev/null || true
-
-
-echo
-echo "=== Partitionierung mit disko ==="
-
-nix --extra-experimental-features "nix-command flakes" run \
-github:nix-community/disko -- \
---mode destroy,format,mount \
-/mnt/etc/nixos/disko.nix
+ls -la /mnt/etc/nixos/
 
 
 echo
-echo "=== NixOS Installation ==="
+echo "=== Installation starten ==="
 
-nixos-install
+nixos-install --root /mnt
 
 
 echo
 echo "=================================="
-echo " Installation erfolgreich!"
+echo "Fertig!"
+echo "Jetzt ISO entfernen und reboot"
 echo "=================================="
-echo
-echo "Nächste Schritte:"
-echo "1. ISO entfernen"
-echo "2. reboot ausführen"
-echo
