@@ -77,7 +77,18 @@ ls -la /mnt/etc/nixos/
 
 
 echo
-echo "=== NixOS Installation ==="
+echo "=== Flake Lock erzeugen ==="
+
+cd /mnt/etc/nixos
+
+nix \
+--extra-experimental-features "nix-command flakes" \
+flake lock
+
+
+echo
+echo "=== Installation starten ==="
+
 
 nixos-install \
 --flake /mnt/etc/nixos#server-001
