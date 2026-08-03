@@ -69,6 +69,9 @@ cp "$SCRIPT_DIR/disko.nix" \
 cp "$SCRIPT_DIR/flake.nix" \
    /mnt/etc/nixos/
 
+cp "$SCRIPT_DIR/hardware-configuration.nix" \
+   /mnt/etc/nixos/ 2>/dev/null || true
+
 
 echo
 echo "=== Dateien in /mnt/etc/nixos ==="
