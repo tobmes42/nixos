@@ -17,9 +17,27 @@
 
           partitions = {
 
-            ESP = {
+            BIOS-boot = {
 
               priority = 1;
+
+              size = "1M";
+
+              type = "EF02";
+
+
+              content = {
+
+                type = "table";
+
+              };
+
+            };
+
+
+            ESP = {
+
+              priority = 2;
 
               size = "512M";
 
@@ -41,7 +59,7 @@
 
             root = {
 
-              priority = 2;
+              priority = 3;
 
               size = "100%";
 

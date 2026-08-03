@@ -46,9 +46,10 @@ echo "=== Partitionierung mit disko ==="
 
 nix \
 --extra-experimental-features "nix-command flakes" \
-run github:nix-community/disko -- \
---mode destroy,format,mount \
-"$SCRIPT_DIR/disko.nix"
+  run github:nix-community/disko -- \
+  --mode destroy,format,mount \
+  --yes-wipe-all-disks \
+  "$SCRIPT_DIR/disko.nix"
 
 
 echo
