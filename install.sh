@@ -96,6 +96,15 @@ write_network_nix() {
     local ip="${ip_cidr%/*}"
     local prefix="${ip_cidr#*/}"
 
+    if [ "$ip_cidr" = "$prefix" ]; then
+        echo "⚠️  Keine CIDR angegeben für '$ip_cidr' – verwende /24."
+        prefix="24"
+    fi
+
+    case "$prefix" in
+        ''|*[!0-9]*) echo "Fehler: Ungültige CIDR '$prefix'."; exit 1 ;;
+    esac
+
     {
         echo "{ config, lib, ... }: {"
         echo "  networking.useDHCP = false;"
