@@ -154,16 +154,6 @@ ls -la /mnt/etc/nixos/
 
 
 echo
-echo "=== Flake Lock erzeugen ==="
-
-cd /mnt/etc/nixos
-
-nix \
---extra-experimental-features "nix-command flakes" \
-flake lock
-
-
-echo
 echo "=== Installation starten ==="
 
 
