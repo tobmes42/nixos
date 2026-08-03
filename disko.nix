@@ -25,13 +25,6 @@
 
               type = "EF02";
 
-
-              content = {
-
-                type = "table";
-
-              };
-
             };
 
 
