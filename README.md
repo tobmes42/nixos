@@ -11,7 +11,7 @@ Dieses Repository enthält eine deklarative NixOS-Installation für eine Proxmox
 * deutsche Tastatur
 * Benutzer `tobmes` (in `wheel`, daher `sudo`-Berechtigung)
 * SSH-Zugriff per SSH-Key
-* optional: statische IP als Parameter übergeb bar (sonst DHCP)
+* optional: statische IP und Hostname als Parameter an `install.sh` übergeben (sonst DHCP / `server-001`)
 * Docker installiert und ohne sudo nutzbar
 * Proxmox QEMU Guest Agent
 * Firewall aktiviert
@@ -95,10 +95,16 @@ Mit DHCP (keine Parameter):
 /root/nixos/install.sh
 ```
 
-Mit statischer IP (alle drei Parameter nötig):
+Mit statischer IP (die ersten drei Parameter nötig):
 
 ```bash
 /root/nixos/install.sh 192.168.0.50/24 192.168.0.1 "1.1.1.1 8.8.8.8"
+```
+
+Mit statischer IP und eigenem Hostname:
+
+```bash
+/root/nixos/install.sh 192.168.0.50/24 192.168.0.1 "1.1.1.1 8.8.8.8" server-002
 ```
 
 Das Script erledigt automatisch:
@@ -107,7 +113,10 @@ Das Script erledigt automatisch:
 * `nixos-generate-config` (erzeugt die `hardware-configuration.nix`)
 * Kopieren der Konfiguration nach `/mnt/etc/nixos`
 * bei statischer IP: Erzeugen der `network.nix` und Deaktivierung von NetworkManager
-* Flake-Lock erzeugen und `nixos-install --flake /mnt/etc/nixos#server-001`
+* Erzeugen der `hostname.nix` mit dem gewünschten Hostnamen (Standard `server-001`)
+* `nixos-install --flake /mnt/etc/nixos#server-001`
+
+> Hinweis: Der Flake-Output heißt immer `server-001` (fester Name in `flake.nix`). Der **eigentliche Hostname** des Systems wird über den `HOSTNAME`-Parameter gesetzt und kann davon abweichen.
 
 Hilfe/Verwendungszweck anzeigen:
 
@@ -131,6 +140,8 @@ Nach dem Neustart (mit statischer IP direkt, sonst IP über DHCP ermitteln):
 ssh tobmes@192.168.0.50
 ```
 
+> Innerhalb der VM bezieht sich der Hostname-FQDN (`<hostname>.`) auf den beim Installieren übergebenen `HOSTNAME` (z. B. `server-002`).
+
 ## Tests
 
 Hostname:
@@ -139,7 +150,7 @@ Hostname:
 hostname
 ```
 
-Erwartet:
+Erwartet (je nach übergebenem `HOSTNAME`):
 
 ```
 server-001

@@ -21,6 +21,8 @@
         disko.nixosModules.disko
       ] ++ nixpkgs.lib.optionals (builtins.pathExists ./network.nix) [
         ./network.nix
+      ] ++ nixpkgs.lib.optionals (builtins.pathExists ./hostname.nix) [
+        ./hostname.nix
       ];
 
     };
