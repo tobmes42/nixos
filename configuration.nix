@@ -61,7 +61,7 @@
 
     openssh.authorizedKeys.keys = [
 
-      "HIER_DEINEN_SSH_PUBLIC_KEY_EINFÜGEN"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB44fX3GwU/K4pIiuvz80fk0JAct+GF+AEZW0UpkYaVo tobmes@Heisenberg.local"
 
     ];
 
