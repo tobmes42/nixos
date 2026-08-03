@@ -18,6 +18,8 @@ Optionale Netzwerk-Parameter für eine statische IP:
   HOSTNAME  Hostname des Servers, z.B. server-002 (Standard: server-001)
 
 Ohne Argumente wird DHCP (NetworkManager) verwendet und der Hostname server-001 gesetzt.
+
+Umgebung: STORE_SIZE=4G   vergrößert den RAM-Store des Live-Installers (nur Installer-ISO).
 EOF
 }
 
@@ -35,6 +37,18 @@ fi
 
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+
+# === Installer-Store vergrößern (optional) ===
+# Der temporäre Store des Live-Installers (/nix/.rw-store) ist ein RAM-tmpfs
+# (Standard: halber RAM). Bei wenig RAM kann er beim Flake-Auflösen voll laufen.
+# Mit STORE_SIZE lässt er sich zur Laufzeit vergrößern, z.B.: STORE_SIZE=4G ./install.sh
+if [ -n "${STORE_SIZE:-}" ] && [ -d /nix/.rw-store ]; then
+    echo
+    echo "=== Installer-Store auf ${STORE_SIZE} vergrößern ==="
+    mount -o remount,size="$STORE_SIZE" /nix/.rw-store
+    df -h /nix/.rw-store | sed -n '1p;$p'
+fi
 
 
 echo
@@ -172,6 +186,18 @@ echo
 echo "=== Dateien in /mnt/etc/nixos ==="
 
 ls -la /mnt/etc/nixos/
+
+
+echo
+echo "=== Flake-Lock regenerieren (stabil) ==="
+
+cd /mnt/etc/nixos
+
+rm -f /mnt/etc/nixos/flake.lock
+
+nix \
+--extra-experimental-features "nix-command flakes" \
+flake lock
 
 
 echo
