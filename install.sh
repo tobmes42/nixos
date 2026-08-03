@@ -105,6 +105,11 @@ write_network_nix() {
         ''|*[!0-9]*) echo "Fehler: Ungültige CIDR '$prefix'."; exit 1 ;;
     esac
 
+    dns_quoted=""
+    for d in $dns; do
+        dns_quoted="$dns_quoted \"$d\""
+    done
+
     {
         echo "{ config, lib, ... }: {"
         echo "  networking.useDHCP = false;"
@@ -114,7 +119,7 @@ write_network_nix() {
         echo "    prefixLength = ${prefix};"
         echo "  }];"
         echo "  networking.defaultGateway = \"$gateway\";"
-        echo "  networking.nameservers = [ $dns ];"
+        echo "  networking.nameservers = [ $dns_quoted ];"
         echo "}"
     } > "$out"
 }
