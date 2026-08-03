@@ -19,6 +19,8 @@
         ./configuration.nix
         ./hardware-configuration.nix
         disko.nixosModules.disko
+      ] ++ nixpkgs.lib.optionals (builtins.pathExists ./network.nix) [
+        ./network.nix
       ];
 
     };

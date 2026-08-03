@@ -4,15 +4,15 @@ Dieses Repository enthält eine deklarative NixOS-Installation für eine Proxmox
 
 ## Eigenschaften
 
-* UEFI Boot mit systemd-boot
-* automatische Partitionierung mit disko
+* Hybrid-Boot mit GRUB – bootet sowohl in UEFI (OVMF) als auch BIOS (SeaBIOS)
+* automatische Partitionierung mit disko (gesteuert über `install.sh`)
 * ext4 Root-Dateisystem
 * deutscher Locale
 * deutsche Tastatur
-* Benutzer `tobmes`
+* Benutzer `tobmes` (in `wheel`, daher `sudo`-Berechtigung)
 * SSH-Zugriff per SSH-Key
-* Docker installiert
-* Docker-Nutzung ohne sudo
+* optional: statische IP als Parameter übergeb bar (sonst DHCP)
+* Docker installiert und ohne sudo nutzbar
 * Proxmox QEMU Guest Agent
 * Firewall aktiviert
 
@@ -20,16 +20,16 @@ Dieses Repository enthält eine deklarative NixOS-Installation für eine Proxmox
 
 * Proxmox VM mit:
 
-  * UEFI (OVMF)
-  * VirtIO Netzwerk
+  * virtIO Netzwerk (Interface `ens18`)
   * VirtIO Festplatte
   * NixOS Installer ISO
+  * Firmware: OVMF (UEFI) **oder** SeaBIOS (BIOS) – dank Hybrid-Boot egal
 * Zielplatte:
 
   * `/dev/sda`
 
 Achtung:
-Die Installation löscht die komplette Zielplatte.
+Die Installation löscht die komplette Zielplatte ohne Rückfrage.
 
 ## Vorbereitung
 
@@ -59,33 +59,17 @@ openssh.authorizedKeys.keys = [
 
 VM vom NixOS ISO booten.
 
-### 2. Tastatur setzen
-
-```bash
-loadkeys de
-```
-
-### 3. Netzwerk testen
+### 2. Netzwerk testen
 
 ```bash
 ping -c 3 nixos.org
 ```
 
-### 4. SSH im Installer aktivieren
+### 3. SSH im Installer aktivieren (optional)
 
 ```bash
 systemctl start sshd
-```
-
-Root-Passwort setzen:
-
-```bash
 passwd
-```
-
-IP-Adresse anzeigen:
-
-```bash
 ip addr
 ```
 
@@ -95,61 +79,41 @@ Von einem anderen Rechner verbinden:
 ssh root@IP-ADRESSE
 ```
 
-## Dateien kopieren
+### 4. Repo auf die VM bringen
 
-Benötigte Dateien:
-
-```
-disko.nix
-configuration.nix
-```
-
-nach:
-
-```
-/tmp/nixos-template/
-```
-
-Beispiel:
+Benötigte Dateien (`flake.nix`, `configuration.nix`, `disko.nix`, `install.sh`):
 
 ```bash
-scp disko.nix root@IP:/tmp/nixos-template/
-scp configuration.nix root@IP:/tmp/nixos-template/
+scp -r /pfad/zu/nixos/ root@IP-ADRESSE:/root/nixos
 ```
 
-## Hardware-Konfiguration erzeugen
+### 5. Installation starten
 
-Auf der VM:
+Mit DHCP (keine Parameter):
 
 ```bash
-nixos-generate-config --root /mnt
+/root/nixos/install.sh
 ```
 
-Dateien kopieren:
+Mit statischer IP (alle drei Parameter nötig):
 
 ```bash
-cp /tmp/nixos-template/disko.nix /mnt/etc/nixos/
-cp /tmp/nixos-template/configuration.nix /mnt/etc/nixos/
+/root/nixos/install.sh 192.168.0.50/24 192.168.0.1 "1.1.1.1 8.8.8.8"
 ```
 
-## Partitionierung durchführen
+Das Script erledigt automatisch:
+* Tastatur (`loadkeys de`)
+* Partitionierung mit disko (GPT: BIOS-Boot + ESP + Root, `--yes-wipe-all-disks`)
+* `nixos-generate-config` (erzeugt die `hardware-configuration.nix`)
+* Kopieren der Konfiguration nach `/mnt/etc/nixos`
+* bei statischer IP: Erzeugen der `network.nix` und Deaktivierung von NetworkManager
+* Flake-Lock erzeugen und `nixos-install --flake /mnt/etc/nixos#server-001`
 
-ACHTUNG:
-Dieser Schritt löscht die Festplatte.
+Hilfe/Verwendungszweck anzeigen:
 
 ```bash
-nix --extra-experimental-features "nix-command flakes" run github:nix-community/disko -- \
-  --mode destroy,format,mount --yes-wipe-all-disks\
-  /mnt/etc/nixos/disko.nix
+/root/nixos/install.sh --help
 ```
-
-## Installation starten
-
-```bash
-nixos-install
-```
-
-Root-Passwort setzen.
 
 ## Neustart
 
@@ -161,10 +125,10 @@ reboot
 
 ## Erster Login
 
-Nach dem Neustart:
+Nach dem Neustart (mit statischer IP direkt, sonst IP über DHCP ermitteln):
 
 ```bash
-ssh tobmes@server-001
+ssh tobmes@192.168.0.50
 ```
 
 ## Tests
