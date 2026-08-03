@@ -6,9 +6,6 @@
   # System
   ####################
 
-  networking.hostName = "server-001";
-
-
   time.timeZone = "Europe/Berlin";
 
 
