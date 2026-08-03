@@ -7,6 +7,26 @@ echo " NixOS Server Installation"
 echo "=================================="
 
 
+usage() {
+    cat <<EOF
+Verwendung: $0 [IP/CIDR] [GATEWAY] [DNS]
+
+Optionale Netzwerk-Parameter für eine statische IP:
+  IP/CIDR   Statische IP mit Prefix, z.B. 192.168.0.50/24
+  GATEWAY   Standard-Router, z.B. 192.168.0.1
+  DNS       DNS-Server (ein oder mehrere, durch Leerzeichen), z.B. 1.1.1.1 8.8.8.8
+
+Ohne Argumente wird DHCP (NetworkManager) verwendet.
+EOF
+}
+
+
+if [ "$#" -eq 1 ] && { [ "$1" = "-h" ] || [ "$1" = "--help" ]; }; then
+    usage
+    exit 0
+fi
+
+
 if [ "$(id -u)" -ne 0 ]; then
     echo "Bitte als root ausführen."
     exit 1
@@ -27,6 +47,40 @@ for file in flake.nix configuration.nix disko.nix; do
         exit 1
     fi
 done
+
+
+if [ "$#" -gt 3 ]; then
+    usage
+    exit 1
+fi
+
+IP_CIDR="${1:-}"
+GATEWAY="${2:-}"
+DNS="${3:-}"
+
+
+write_network_nix() {
+    local ip_cidr="$1"
+    local gateway="$2"
+    local dns="$3"
+    local out="/mnt/etc/nixos/network.nix"
+
+    local ip="${ip_cidr%/*}"
+    local prefix="${ip_cidr#*/}"
+
+    {
+        echo "{ config, lib, ... }: {"
+        echo "  networking.useDHCP = false;"
+        echo "  networking.networkmanager.enable = false;"
+        echo "  networking.interfaces.ens18.ipv4.addresses = [{"
+        echo "    address = \"$ip\";"
+        echo "    prefixLength = ${prefix};"
+        echo "  }];"
+        echo "  networking.defaultGateway = \"$gateway\";"
+        echo "  networking.nameservers = [ $dns ];"
+        echo "}"
+    } > "$out"
+}
 
 
 echo
@@ -72,6 +126,25 @@ cp "$SCRIPT_DIR/flake.nix" \
 
 cp "$SCRIPT_DIR/hardware-configuration.nix" \
    /mnt/etc/nixos/ 2>/dev/null || true
+
+
+if [ -n "$IP_CIDR" ]; then
+    echo
+    echo "=== Statische IP erzeugen (network.nix) ==="
+
+    if [ -z "$GATEWAY" ] || [ -z "$DNS" ]; then
+        echo "Fehler: Bei statischer IP müssen GATEWAY und DNS angegeben werden."
+        usage
+        exit 1
+    fi
+
+    write_network_nix "$IP_CIDR" "$GATEWAY" "$DNS"
+    echo "network.nix erzeugt:"
+    cat /mnt/etc/nixos/network.nix
+else
+    echo
+    echo "=== Keine statische IP -> DHCP (NetworkManager) verwendet ==="
+fi
 
 
 echo
