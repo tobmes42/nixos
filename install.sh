@@ -99,7 +99,7 @@ write_network_nix() {
     {
         echo "{ config, lib, ... }: {"
         echo "  networking.useDHCP = false;"
-        echo "  networking.networkmanager.enable = false;"
+        echo "  networking.networkmanager.enable = lib.mkForce false;"
         echo "  networking.interfaces.ens18.ipv4.addresses = [{"
         echo "    address = \"$ip\";"
         echo "    prefixLength = ${prefix};"
