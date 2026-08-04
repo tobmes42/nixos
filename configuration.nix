@@ -116,6 +116,18 @@
 
 
   ####################
+  # VS Code Server (Remote-SSH)
+  ####################
+
+  # Patcht die vom VS-Code-Client installierten Server-Binaries auf NixOS.
+  # Nur aktivieren, wenn erweiterte Prebuilt-Extension-Binaries (ohne Patching)
+  # laufen sollen – hat Nachteile (SUID, anderer Terminal). Standard: aus.
+  services.vscode-server.enable = true;
+  # services.vscode-server.enableFHS = true;
+
+
+
+  ####################
   # Firewall
   ####################
 
