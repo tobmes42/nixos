@@ -110,6 +110,7 @@
     wget
     curl
     docker
+    opencode
 
   ];
 
