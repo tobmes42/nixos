@@ -12,22 +12,24 @@
 
 
   outputs = { self, nixpkgs, disko, vscode-server, ... }:
-  {
-    nixosConfigurations.server-001 = nixpkgs.lib.nixosSystem {
 
+  let
+    mkHost = hostname: nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
 
       modules = [
-        ./configuration.nix
+        (./configuration.nix) { networking.hostName = hostname; }
         ./hardware-configuration.nix
         disko.nixosModules.disko
         vscode-server.nixosModules.default
       ] ++ nixpkgs.lib.optionals (builtins.pathExists ./network.nix) [
         ./network.nix
-      ] ++ nixpkgs.lib.optionals (builtins.pathExists ./hostname.nix) [
-        ./hostname.nix
       ];
-
+    };
+  in
+  {
+    nixosConfigurations = {
+      server-001 = mkHost "server-001";
     };
   };
 }
