@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, hostname, ... }:
 
 {
 
@@ -21,6 +21,8 @@
   ####################
 
   networking.networkmanager.enable = true;
+
+  networking.hostName = hostname;
 
 
 
@@ -96,6 +98,14 @@
 
 
   ####################
+  # Cron / Scheduled Jobs
+  ####################
+
+  services.cron.enable = true;
+
+
+
+  ####################
   # Docker
   ####################
 
@@ -107,10 +117,7 @@
 
     git
     vim
-    wget
-    curl
     docker
-    opencode
 
   ];
 
