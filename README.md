@@ -11,7 +11,7 @@ Dieses Repository enthält eine deklarative NixOS-Installation für eine Proxmox
 * deutsche Tastatur
 * Benutzer `tobmes` (in `wheel`, daher `sudo`-Berechtigung)
 * SSH-Zugriff per SSH-Key
-* optional: statische IP und Hostname als Parameter an `install.sh` übergeben (sonst DHCP / `server-001`)
+* optional: statische IP als Parameter an `install.sh` übergeben (sonst DHCP); Hostname ist zwingend erstes Argument
 * Docker installiert und ohne sudo nutzbar (auf dem `syslog-server`-Host deaktiviert)
 * Proxmox QEMU Guest Agent
 * Firewall aktiviert
@@ -93,22 +93,24 @@ scp -r /pfad/zu/nixos/ root@IP-ADRESSE:/root/nixos
 
 ### 5. Installation starten
 
-Mit DHCP (keine Parameter):
+Der Hostname ist ein **zwingendes, erstes Argument** (`install.sh HOSTNAME [IP/CIDR] [GATEWAY] [DNS]`).
+
+Mit DHCP:
 
 ```bash
-/root/nixos/install.sh
+/root/nixos/install.sh server-001
 ```
 
-Mit statischer IP (die ersten drei Parameter nötig):
+Mit statischer IP (dahinter optional):
 
 ```bash
-/root/nixos/install.sh 192.168.0.50/24 192.168.0.1 "1.1.1.1 8.8.8.8"
+/root/nixos/install.sh server-001 192.168.0.50/24 192.168.0.1 "1.1.1.1 8.8.8.8"
 ```
 
-Mit statischer IP und eigenem Hostname:
+Beispiel dedizierter Syslog-Server (statische IP):
 
 ```bash
-/root/nixos/install.sh 192.168.0.50/24 192.168.0.1 "1.1.1.1 8.8.8.8" server-002
+/root/nixos/install.sh syslog-server 10.30.0.50/24 10.30.0.1 "10.30.0.1"
 ```
 
 Das Script erledigt automatisch:
@@ -117,7 +119,7 @@ Das Script erledigt automatisch:
 * `nixos-generate-config` (erzeugt die `hardware-configuration.nix`)
 * Kopieren der Konfiguration nach `/mnt/etc/nixos`
 * bei statischer IP: Erzeugen der `network.nix` und Deaktivierung von NetworkManager
-* Pinnen des Flake-Hosts auf den gewünschten Hostnamen (Standard `server-001`)
+* Pinnen des Flake-Hosts auf den übergebenen Hostnamen
   und `nixos-install --flake /mnt/etc/nixos#<HOSTNAME>`
 
 > Hinweis: Der Hostname entspricht dem Flake-Attribut (Name in der `hosts`-Liste in

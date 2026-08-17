@@ -9,15 +9,18 @@ echo "=================================="
 
 usage() {
     cat <<EOF
-Verwendung: $0 [IP/CIDR] [GATEWAY] [DNS] [HOSTNAME]
+Verwendung: $0 HOSTNAME [IP/CIDR] [GATEWAY] [DNS]
+
+Erforderlich:
+  HOSTNAME  Hostname des Servers, z.B. test-server
+            (bestimmt die Rollen im Flake, z.B. syslog-server)
 
 Optionale Netzwerk-Parameter für eine statische IP:
-  IP/CIDR   Statische IP mit Prefix, z.B. 192.168.0.50/24
-  GATEWAY   Standard-Router, z.B. 192.168.0.1
+  IP/CIDR   Statische IP mit Prefix, z.B. 10.30.0.50/24
+  GATEWAY   Standard-Router, z.B. 10.30.0.1
   DNS       DNS-Server (ein oder mehrere, durch Leerzeichen), z.B. 1.1.1.1 8.8.8.8
-  HOSTNAME  Hostname des Servers, z.B. server-002 (Standard: server-001)
 
-Ohne Argumente wird DHCP (NetworkManager) verwendet und der Hostname server-001 gesetzt.
+Ohne Netzwerk-Parameter wird DHCP (NetworkManager) verwendet.
 
 Umgebung: STORE_SIZE=4G   vergrößert den RAM-Store des Live-Installers (nur Installer-ISO).
 EOF
@@ -64,15 +67,20 @@ for file in flake.nix configuration.nix disko.nix; do
 done
 
 
-if [ "$#" -gt 4 ]; then
+if [ "$#" -lt 1 ] || [ "$#" -gt 4 ]; then
     usage
     exit 1
 fi
 
-IP_CIDR="${1:-}"
-GATEWAY="${2:-}"
-DNS="${3:-}"
-HOSTNAME="${4:-server-001}"
+HOSTNAME="$1"
+if [ -z "$HOSTNAME" ]; then
+    echo "Fehler: HOSTNAME darf nicht leer sein."
+    exit 1
+fi
+
+IP_CIDR="${2:-}"
+GATEWAY="${3:-}"
+DNS="${4:-}"
 
 
 write_network_nix() {
