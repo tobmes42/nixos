@@ -17,8 +17,8 @@ in
         input(type="imtcp" port="514")
 
         # Unbound-DNS-Queries der OPNsense (durchsuchbar per grep/zgrep).
-        # Treffen je nach OPNsense-Einstellung "info:" oder "query:" (Tag Queries).
-        if ($msg contains "unbound" and ($msg contains "info:" or $msg contains "query:")) then {
+        # "unbound" steht im Programmnamen, "info:"/"query:" in der Nachricht (Tag Queries).
+        if ($programname == "unbound" and ($msg contains "info:" or $msg contains "query:")) then {
             action(type="omfile" file="/var/log/dns/queries.log" createDirs="on")
             stop
         }
