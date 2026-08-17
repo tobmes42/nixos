@@ -18,7 +18,7 @@ in
 
         # Unbound-DNS-Queries der OPNsense (durchsuchbar per grep/zgrep).
         # "unbound" steht im Programmnamen, "info:"/"query:" in der Nachricht (Tag Queries).
-        if ($programname == "unbound" and ($msg contains "info:" or $msg contains "query:")) then {
+        if ($programname == "unbound" and ($msg contains "info:" or $msg contains "query:" or $msg contains "reply:")) then {
             action(type="omfile" file="/var/log/dns/queries.log" createDirs="on")
             stop
         }
