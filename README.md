@@ -12,7 +12,7 @@ Dieses Repository enthält eine deklarative NixOS-Installation für eine Proxmox
 * Benutzer `tobmes` (in `wheel`, daher `sudo`-Berechtigung)
 * SSH-Zugriff per SSH-Key
 * optional: statische IP und Hostname als Parameter an `install.sh` übergeben (sonst DHCP / `server-001`)
-* Docker installiert und ohne sudo nutzbar
+* Docker installiert und ohne sudo nutzbar (auf dem `syslog-server`-Host deaktiviert)
 * Proxmox QEMU Guest Agent
 * Firewall aktiviert
 * optional: Syslog-Server-Rolle (`syslog-server.nix`) – empfängt per rsyslog UDP/TCP-Logs
@@ -150,9 +150,14 @@ ssh tobmes@192.168.0.50
 
 ## Syslog-Server (optional)
 
-Empfängt Remote-Syslog der OPNsense (standardmäßig auf `server-001` aktiv via
-`services.syslog-server.enable` in `configuration.nix`). Um den Kollektor auf
-einen anderen Host zu legen, änderst du diese eine Zeile auf den gewünschten Hostnamen.
+Empfängt Remote-Syslog der OPNsense. Aktiviert auf dem dedizierten Host
+`syslog-server` via `services.syslog-server.enable` in `configuration.nix`.
+Um den Kollektor auf einen anderen Host zu legen, änderst du die Zeile auf den
+gewünschten Hostnamen.
+
+Auf dem `syslog-server`-Host werden **Docker und der VS Code Server automatisch
+deaktiviert** (`hostname != "syslog-server"`) – so bleibt er als schlanker
+Log-Server dimensionierbar (1 vCPU / 1–2 GB RAM / 20 GB Disk).
 
 Was das Modul einrichtet:
 

@@ -1,4 +1,4 @@
-{ config, pkgs, hostname, ... }:
+{ config, pkgs, hostname, lib, ... }:
 
 {
 
@@ -109,9 +109,9 @@
   # Syslog-Empfänger (nur auf dem Log-Host)
   ####################
 
-  # Rolle "Syslog-Server" ist an den Log-Host gebunden. Andere Hosts,
-  # die aus diesem Flake gebaut werden, bekommen das Modul NICHT.
-  services.syslog-server.enable = (hostname == "server-001");
+  # Rolle "Syslog-Server" ist an den dedizierten Log-Host gebunden.
+  # Andere Hosts, die aus diesem Flake gebaut werden, bekommen das Modul NICHT.
+  services.syslog-server.enable = (hostname == "syslog-server");
 
 
 
@@ -119,16 +119,16 @@
   # Docker
   ####################
 
-  virtualisation.docker.enable = true;
+  # Syslog-Host bekommt kein Docker (schlanker Dedicated-Log-Server).
+  virtualisation.docker.enable = (hostname != "syslog-server");
 
 
 
   environment.systemPackages = with pkgs; [
-
     git
     vim
+  ] ++ lib.optionals (hostname != "syslog-server") [
     docker
-
   ];
 
 
@@ -140,7 +140,8 @@
   # Patcht die vom VS-Code-Client installierten Server-Binaries auf NixOS.
   # Nur aktivieren, wenn erweiterte Prebuilt-Extension-Binaries (ohne Patching)
   # laufen sollen – hat Nachteile (SUID, anderer Terminal). Standard: aus.
-  services.vscode-server.enable = true;
+  # Syslog-Host bekommt keinen VS Code Server.
+  services.vscode-server.enable = (hostname != "syslog-server");
   # services.vscode-server.enableFHS = true;
 
 

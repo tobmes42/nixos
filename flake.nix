@@ -34,7 +34,7 @@
 
     # Neue Hosts hier ergänzen – der Flake-Attributname ist der Hostname
     # (muss mit dem HOSTNAME in install.sh übereinstimmen).
-    hosts = [ "server-001" ];
+    hosts = [ "server-001" "syslog-server" ];
   in
   {
     nixosConfigurations = builtins.listToAttrs (map (h: { name = h; value = mkHost h; }) hosts);
