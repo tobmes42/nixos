@@ -75,18 +75,6 @@ DNS="${3:-}"
 HOSTNAME="${4:-server-001}"
 
 
-write_hostname_nix() {
-    local hostname="$1"
-    local out="/mnt/etc/nixos/hostname.nix"
-
-    {
-        echo "{ config, lib, ... }: {"
-        echo "  networking.hostName = \"$hostname\";"
-        echo "}"
-    } > "$out"
-}
-
-
 write_network_nix() {
     local ip_cidr="$1"
     local gateway="$2"
@@ -166,6 +154,9 @@ cp "$SCRIPT_DIR/disko.nix" \
 cp "$SCRIPT_DIR/flake.nix" \
    /mnt/etc/nixos/
 
+cp "$SCRIPT_DIR/syslog-server.nix" \
+   /mnt/etc/nixos/
+
 cp "$SCRIPT_DIR/hardware-configuration.nix" \
    /mnt/etc/nixos/ 2>/dev/null || true
 
@@ -190,10 +181,13 @@ fi
 
 
 echo
-echo "=== Hostname setzen ($HOSTNAME) ==="
+echo "=== Hostname/Flake-Host festlegen ($HOSTNAME) ==="
 
-write_hostname_nix "$HOSTNAME"
-cat /mnt/etc/nixos/hostname.nix
+# Flake-Attribut auf den gewuenschten Host pinning, damit nixos-install
+# das passende #<HOSTNAME> baut. Der Hostname selbst wird vom Modul
+# configuration.nix (specialArgs `hostname` -> networking.hostName) gesetzt.
+sed -i "s/^[[:space:]]*hosts = \[ .* \];/    hosts = [ \"${HOSTNAME}\" ];/" /mnt/etc/nixos/flake.nix
+grep -n "hosts = " /mnt/etc/nixos/flake.nix || true
 
 
 echo
@@ -219,7 +213,7 @@ echo "=== Installation starten ==="
 
 
 nixos-install \
---flake /mnt/etc/nixos#server-001
+--flake "/mnt/etc/nixos#${HOSTNAME}"
 
 
 echo

@@ -106,6 +106,16 @@
 
 
   ####################
+  # Syslog-Empfänger (nur auf dem Log-Host)
+  ####################
+
+  # Rolle "Syslog-Server" ist an den Log-Host gebunden. Andere Hosts,
+  # die aus diesem Flake gebaut werden, bekommen das Modul NICHT.
+  services.syslog-server.enable = (hostname == "server-001");
+
+
+
+  ####################
   # Docker
   ####################
 

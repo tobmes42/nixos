@@ -15,6 +15,9 @@ Dieses Repository enthält eine deklarative NixOS-Installation für eine Proxmox
 * Docker installiert und ohne sudo nutzbar
 * Proxmox QEMU Guest Agent
 * Firewall aktiviert
+* optional: Syslog-Server-Rolle (`syslog-server.nix`) – empfängt per rsyslog UDP/TCP-Logs
+  der OPNsense (Unbound-DNS-Queries in `/var/log/dns/queries.log`, durchsuchbar per
+  grep/zgrep, mit logrotate), pro Host steuerbar über `services.syslog-server.enable`
 
 ## Voraussetzungen
 
@@ -81,7 +84,8 @@ ssh root@IP-ADRESSE
 
 ### 4. Repo auf die VM bringen
 
-Benötigte Dateien (`flake.nix`, `configuration.nix`, `disko.nix`, `install.sh`):
+Benötigte Dateien (`flake.nix`, `configuration.nix`, `disko.nix`, `syslog-server.nix`, `install.sh`):
+(`hardware-configuration.nix` wird vom Installer automatisch erzeugt.)
 
 ```bash
 scp -r /pfad/zu/nixos/ root@IP-ADRESSE:/root/nixos
@@ -113,10 +117,12 @@ Das Script erledigt automatisch:
 * `nixos-generate-config` (erzeugt die `hardware-configuration.nix`)
 * Kopieren der Konfiguration nach `/mnt/etc/nixos`
 * bei statischer IP: Erzeugen der `network.nix` und Deaktivierung von NetworkManager
-* Erzeugen der `hostname.nix` mit dem gewünschten Hostnamen (Standard `server-001`)
-* `nixos-install --flake /mnt/etc/nixos#server-001`
+* Pinnen des Flake-Hosts auf den gewünschten Hostnamen (Standard `server-001`)
+  und `nixos-install --flake /mnt/etc/nixos#<HOSTNAME>`
 
-> Hinweis: Der Flake-Output heißt immer `server-001` (fester Name in `flake.nix`). Der **eigentliche Hostname** des Systems wird über den `HOSTNAME`-Parameter gesetzt und kann davon abweichen.
+> Hinweis: Der Hostname entspricht dem Flake-Attribut (Name in der `hosts`-Liste in
+> `flake.nix`). Neue Server fügst du dort der `hosts`-Liste hinzu; `install.sh`
+> wählt beim Installieren das passende `#<HOSTNAME>`.
 
 Hilfe/Verwendungszweck anzeigen:
 
@@ -141,6 +147,31 @@ ssh tobmes@192.168.0.50
 ```
 
 > Innerhalb der VM bezieht sich der Hostname-FQDN (`<hostname>.`) auf den beim Installieren übergebenen `HOSTNAME` (z. B. `server-002`).
+
+## Syslog-Server (optional)
+
+Empfängt Remote-Syslog der OPNsense (standardmäßig auf `server-001` aktiv via
+`services.syslog-server.enable` in `configuration.nix`). Um den Kollektor auf
+einen anderen Host zu legen, änderst du diese eine Zeile auf den gewünschten Hostnamen.
+
+Was das Modul einrichtet:
+
+* rsyslog lauscht auf Port 514 (UDP und TCP)
+* Unbound-DNS-Queries landen in `/var/log/dns/queries.log`
+* sonstige Remote-Meldungen in `/var/log/remote/all.log`
+* logrotate (täglich, komprimiert, 365 Tage) → Dateien `queries.log-YYYYMMDD.gz`
+* Firewall-Freigabe für TCP/UDP 514
+
+Suche danach z. B.:
+
+```bash
+grep  "10.10.0.174"          /var/log/dns/queries.log
+zgrep "tracker.example"      /var/log/dns/queries.log.*.gz
+```
+
+> Auf OPNsense-Seite muss eine Syslog-Destination auf `10.30.0.27:514` zeigen
+> (Transport z. B. `tcp4`, Facility `daemon`, Level `info`) und in Unbound
+> „Log queries“ aktiviert sein, damit Query-Zeilen als `info:` ankommen.
 
 ## Tests
 
