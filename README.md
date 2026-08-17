@@ -113,6 +113,12 @@ Beispiel dedizierter Syslog-Server (statische IP):
 /root/nixos/install.sh syslog-server 10.30.0.50/24 10.30.0.1 "10.30.0.1"
 ```
 
+Bei GitHub-Rate-Limit (HTTP 429) beim Flake-Fetch einen Token übergeben:
+
+```bash
+GITHUB_TOKEN=ghp_xxx /root/nixos/install.sh syslog-server
+```
+
 Das Script erledigt automatisch:
 * Tastatur (`loadkeys de`)
 * Partitionierung mit disko (GPT: BIOS-Boot + ESP + Root, `--yes-wipe-all-disks`)

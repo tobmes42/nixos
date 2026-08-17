@@ -83,6 +83,14 @@ GATEWAY="${3:-}"
 DNS="${4:-}"
 
 
+# Optionaler GitHub-Token, um Flake-Fetches trotz Rate-Limit (HTTP 429) zu
+# ermöglichen. Verwendung:  GITHUB_TOKEN=ghp_xxx ./install.sh HOSTNAME [...]
+NIX_TOKEN_OPT=()
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+    NIX_TOKEN_OPT=(--option access-tokens "github.com=$GITHUB_TOKEN")
+fi
+
+
 write_network_nix() {
     local ip_cidr="$1"
     local gateway="$2"
@@ -136,7 +144,7 @@ ping -c 1 nixos.org >/dev/null
 echo
 echo "=== Partitionierung mit disko ==="
 
-nix \
+nix "${NIX_TOKEN_OPT[@]}" \
 --extra-experimental-features "nix-command flakes" \
   run github:nix-community/disko -- \
   --mode destroy,format,mount \
@@ -211,7 +219,7 @@ cd /mnt/etc/nixos
 
 rm -f /mnt/etc/nixos/flake.lock
 
-nix \
+nix "${NIX_TOKEN_OPT[@]}" \
 --extra-experimental-features "nix-command flakes" \
 flake lock
 
@@ -221,6 +229,7 @@ echo "=== Installation starten ==="
 
 
 nixos-install \
+"${NIX_TOKEN_OPT[@]}" \
 --flake "/mnt/etc/nixos#${HOSTNAME}"
 
 
