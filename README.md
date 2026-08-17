@@ -146,7 +146,7 @@ Nach dem Neustart (mit statischer IP direkt, sonst IP über DHCP ermitteln):
 ssh tobmes@192.168.0.50
 ```
 
-> Innerhalb der VM bezieht sich der Hostname-FQDN (`<hostname>.`) auf den beim Installieren übergebenen `HOSTNAME` (z. B. `server-002`).
+> Der Hostname der VM entspricht dem beim Installieren übergebenen `HOSTNAME` (z. B. `server-002`).
 
 ## Syslog-Server (optional)
 
