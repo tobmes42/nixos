@@ -37,6 +37,9 @@ in
         rotate = 365;
         compress = true;
         dateext = true;
+        # rsyslog hält die aktive Datei offen – copytruncate behält die aktive
+        # Datei(truncat) und komprimiert eine Kopie (keine verlorene Inode).
+        copytruncate = true;
         files = [
           "/var/log/dns/queries.log"
           "/var/log/remote/all.log"
